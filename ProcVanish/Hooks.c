@@ -12,13 +12,11 @@
 fnNtQuerySystemInformation originalNtQuery;
 fnNtQuerySystemInformation newNtQuery;
 
-BOOL InitialiseHooks() {
+VOID InitHooks() {
 
     MH_Initialize();
-    InstallHook(L"NTDLL", "NtQuerySystemInformation", (LPVOID*) & originalNtQuery, hookedNtQuery, &newNtQuery);
-    MH_EnableHook(MH_ALL_HOOKS);
+    InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
 
-    return TRUE;
 }
 
 NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
@@ -48,11 +46,12 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 }
 
 
-BOOL InstallHook(LPCWSTR dll, LPCSTR function, LPVOID *originalFunction, LPVOID hookedFunction, LPVOID* newFunction) {
+BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction) {
 
-    *originalFunction = (LPVOID)GetProcAddress(GetModuleHandle(dll), function);
+    *originalFunction = GetProcAddress(GetModuleHandle(L"NTDLL"), function);
 
-    if (MH_CreateHook(&originalFunction, &hookedFunction, &newFunction) != MH_OK) {
+    
+    if (MH_CreateHook(originalFunction, &hookedFunction, &newFunction) != MH_OK) {
         return FALSE;
     }
 

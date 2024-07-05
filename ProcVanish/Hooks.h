@@ -1,8 +1,9 @@
 #pragma once
 
-BOOL InitialiseHooks();
+VOID InitHooks();
 
-BOOL InstallHook(LPCSTR dll, LPCSTR function, LPVOID* originalFunction, LPVOID hookedFunction, LPVOID* newFunction);
+BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction);
+BOOL UnHook();
 
 BOOL HasPrefix(LPCWSTR str);
 BOOL HasPrefixU(UNICODE_STRING str);

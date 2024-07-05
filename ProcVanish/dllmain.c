@@ -18,9 +18,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     {
     case DLL_PROCESS_ATTACH:
 
-        if (!InitialiseHooks()) {
-            return FALSE;
-        }
+        InitHooks();
         
         break;
     case DLL_PROCESS_DETACH:
