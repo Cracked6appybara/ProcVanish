@@ -24,6 +24,9 @@
     <ClCompile Include="vanWin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ApiHashing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TypeDef.h">
@@ -41,5 +44,14 @@
     <ClInclude Include="vanWin.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ApiHashing.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="minhook.x64.lib" />
   </ItemGroup>
 </Project>
