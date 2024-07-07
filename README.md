@@ -30,8 +30,3 @@ I want to make this project as FUD as possible whilst having up on github. But t
 - [@bytecode77](https://github.com/bytecode77)
 Huge inspiration from [@bytecode77](https://github.com/bytecode77) for his project r77 rootkit.
 
-
-## Screenshots
-
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
-
