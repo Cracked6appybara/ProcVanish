@@ -47,11 +47,5 @@
     <ClInclude Include="ApiHashing.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MinHook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="minhook.x64.lib" />
   </ItemGroup>
 </Project>

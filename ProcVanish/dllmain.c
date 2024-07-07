@@ -6,7 +6,7 @@
 #include "Hooks.h"
 
 
-
+#pragma comment(lib, "minhook.x64.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
 
