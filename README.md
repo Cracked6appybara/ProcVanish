@@ -13,7 +13,7 @@ I want to make this project as FUD as possible whilst having up on github. But t
 - [ ]  Hide Registry Keys
 - [x]  Hide Processes From Task Manager, Proc Hacker etc.
 - [ ]  Indirect Syscalls
-- [x]  Api Hashing
+- [ ]  Api Hashing
 - [ ]  IAT Camouflage
 - [ ]  Use the registry to store the Dll.
  
