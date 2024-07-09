@@ -1,8 +1,578 @@
+/*
+    contains windows structures and enumerations needed.
+    e.g.: PEB + TEB structures
+    e.g.: SYSTEM_INFORMATION_CLASS enum
+*/
+
 #pragma once
 
+#include <Windows.h>
 
-// rev
-// private
+typedef enum _FILE_INFORMATION_CLASS
+{
+    FileDirectoryInformation = 1, // q: FILE_DIRECTORY_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileFullDirectoryInformation, // q: FILE_FULL_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileBothDirectoryInformation, // q: FILE_BOTH_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileBasicInformation, // q; s: FILE_BASIC_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES)
+    FileStandardInformation, // q: FILE_STANDARD_INFORMATION, FILE_STANDARD_INFORMATION_EX
+    FileInternalInformation, // q: FILE_INTERNAL_INFORMATION
+    FileEaInformation, // q: FILE_EA_INFORMATION
+    FileAccessInformation, // q: FILE_ACCESS_INFORMATION
+    FileNameInformation, // q: FILE_NAME_INFORMATION
+    FileRenameInformation, // s: FILE_RENAME_INFORMATION (requires DELETE) // 10
+    FileLinkInformation, // s: FILE_LINK_INFORMATION
+    FileNamesInformation, // q: FILE_NAMES_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileDispositionInformation, // s: FILE_DISPOSITION_INFORMATION (requires DELETE)
+    FilePositionInformation, // q; s: FILE_POSITION_INFORMATION
+    FileFullEaInformation, // FILE_FULL_EA_INFORMATION
+    FileModeInformation, // q; s: FILE_MODE_INFORMATION
+    FileAlignmentInformation, // q: FILE_ALIGNMENT_INFORMATION
+    FileAllInformation, // q: FILE_ALL_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileAllocationInformation, // s: FILE_ALLOCATION_INFORMATION (requires FILE_WRITE_DATA)
+    FileEndOfFileInformation, // s: FILE_END_OF_FILE_INFORMATION (requires FILE_WRITE_DATA) // 20
+    FileAlternateNameInformation, // q: FILE_NAME_INFORMATION
+    FileStreamInformation, // q: FILE_STREAM_INFORMATION
+    FilePipeInformation, // q; s: FILE_PIPE_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES)
+    FilePipeLocalInformation, // q: FILE_PIPE_LOCAL_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FilePipeRemoteInformation, // q; s: FILE_PIPE_REMOTE_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES)
+    FileMailslotQueryInformation, // q: FILE_MAILSLOT_QUERY_INFORMATION
+    FileMailslotSetInformation, // s: FILE_MAILSLOT_SET_INFORMATION
+    FileCompressionInformation, // q: FILE_COMPRESSION_INFORMATION
+    FileObjectIdInformation, // q: FILE_OBJECTID_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileCompletionInformation, // s: FILE_COMPLETION_INFORMATION // 30
+    FileMoveClusterInformation, // s: FILE_MOVE_CLUSTER_INFORMATION (requires FILE_WRITE_DATA)
+    FileQuotaInformation, // q: FILE_QUOTA_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileReparsePointInformation, // q: FILE_REPARSE_POINT_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileNetworkOpenInformation, // q: FILE_NETWORK_OPEN_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileAttributeTagInformation, // q: FILE_ATTRIBUTE_TAG_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileTrackingInformation, // s: FILE_TRACKING_INFORMATION (requires FILE_WRITE_DATA)
+    FileIdBothDirectoryInformation, // q: FILE_ID_BOTH_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileIdFullDirectoryInformation, // q: FILE_ID_FULL_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex])
+    FileValidDataLengthInformation, // s: FILE_VALID_DATA_LENGTH_INFORMATION (requires FILE_WRITE_DATA and/or SeManageVolumePrivilege)
+    FileShortNameInformation, // s: FILE_NAME_INFORMATION (requires DELETE) // 40
+    FileIoCompletionNotificationInformation, // q; s: FILE_IO_COMPLETION_NOTIFICATION_INFORMATION (q: requires FILE_READ_ATTRIBUTES) // since VISTA
+    FileIoStatusBlockRangeInformation, // s: FILE_IOSTATUSBLOCK_RANGE_INFORMATION (requires SeLockMemoryPrivilege)
+    FileIoPriorityHintInformation, // q; s: FILE_IO_PRIORITY_HINT_INFORMATION, FILE_IO_PRIORITY_HINT_INFORMATION_EX (q: requires FILE_READ_DATA)
+    FileSfioReserveInformation, // q; s: FILE_SFIO_RESERVE_INFORMATION (q: requires FILE_READ_DATA)
+    FileSfioVolumeInformation, // q: FILE_SFIO_VOLUME_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileHardLinkInformation, // q: FILE_LINKS_INFORMATION
+    FileProcessIdsUsingFileInformation, // q: FILE_PROCESS_IDS_USING_FILE_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileNormalizedNameInformation, // q: FILE_NAME_INFORMATION
+    FileNetworkPhysicalNameInformation, // q: FILE_NETWORK_PHYSICAL_NAME_INFORMATION
+    FileIdGlobalTxDirectoryInformation, // q: FILE_ID_GLOBAL_TX_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex]) // since WIN7 // 50
+    FileIsRemoteDeviceInformation, // q: FILE_IS_REMOTE_DEVICE_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileUnusedInformation,
+    FileNumaNodeInformation, // q: FILE_NUMA_NODE_INFORMATION
+    FileStandardLinkInformation, // q: FILE_STANDARD_LINK_INFORMATION
+    FileRemoteProtocolInformation, // q: FILE_REMOTE_PROTOCOL_INFORMATION
+    FileRenameInformationBypassAccessCheck, // (kernel-mode only); s: FILE_RENAME_INFORMATION // since WIN8
+    FileLinkInformationBypassAccessCheck, // (kernel-mode only); s: FILE_LINK_INFORMATION
+    FileVolumeNameInformation, // q: FILE_VOLUME_NAME_INFORMATION
+    FileIdInformation, // q: FILE_ID_INFORMATION
+    FileIdExtdDirectoryInformation, // q: FILE_ID_EXTD_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex]) // 60
+    FileReplaceCompletionInformation, // s: FILE_COMPLETION_INFORMATION // since WINBLUE
+    FileHardLinkFullIdInformation, // q: FILE_LINK_ENTRY_FULL_ID_INFORMATION // FILE_LINKS_FULL_ID_INFORMATION
+    FileIdExtdBothDirectoryInformation, // q: FILE_ID_EXTD_BOTH_DIR_INFORMATION (requires FILE_LIST_DIRECTORY) (NtQueryDirectoryFile[Ex]) // since THRESHOLD
+    FileDispositionInformationEx, // s: FILE_DISPOSITION_INFO_EX (requires DELETE) // since REDSTONE
+    FileRenameInformationEx, // s: FILE_RENAME_INFORMATION_EX
+    FileRenameInformationExBypassAccessCheck, // (kernel-mode only); s: FILE_RENAME_INFORMATION_EX
+    FileDesiredStorageClassInformation, // q; s: FILE_DESIRED_STORAGE_CLASS_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES) // since REDSTONE2
+    FileStatInformation, // q: FILE_STAT_INFORMATION (requires FILE_READ_ATTRIBUTES)
+    FileMemoryPartitionInformation, // s: FILE_MEMORY_PARTITION_INFORMATION // since REDSTONE3
+    FileStatLxInformation, // q: FILE_STAT_LX_INFORMATION (requires FILE_READ_ATTRIBUTES and FILE_READ_EA) // since REDSTONE4 // 70
+    FileCaseSensitiveInformation, // q; s: FILE_CASE_SENSITIVE_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES)
+    FileLinkInformationEx, // s: FILE_LINK_INFORMATION_EX // since REDSTONE5
+    FileLinkInformationExBypassAccessCheck, // (kernel-mode only); s: FILE_LINK_INFORMATION_EX
+    FileStorageReserveIdInformation, // q; s: FILE_STORAGE_RESERVE_ID_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES)
+    FileCaseSensitiveInformationForceAccessCheck, // q; s: FILE_CASE_SENSITIVE_INFORMATION
+    FileKnownFolderInformation, // q; s: FILE_KNOWN_FOLDER_INFORMATION (q: requires FILE_READ_ATTRIBUTES; s: requires FILE_WRITE_ATTRIBUTES) // since WIN11
+    FileStatBasicInformation, // since 23H2
+    FileId64ExtdDirectoryInformation, // FILE_ID_64_EXTD_DIR_INFORMATION
+    FileId64ExtdBothDirectoryInformation, // FILE_ID_64_EXTD_BOTH_DIR_INFORMATION
+    FileIdAllExtdDirectoryInformation, // FILE_ID_ALL_EXTD_DIR_INFORMATION
+    FileIdAllExtdBothDirectoryInformation, // FILE_ID_ALL_EXTD_BOTH_DIR_INFORMATION
+    FileStreamReservationInformation, // FILE_STREAM_RESERVATION_INFORMATION // since 24H2
+    FileMupProviderInfo, // MUP_PROVIDER_INFORMATION
+    FileMaximumInformation
+} FILE_INFORMATION_CLASS, * PFILE_INFORMATION_CLASS;
+
+
+typedef struct _IO_STATUS_BLOCK
+{
+    union
+    {
+        NTSTATUS Status;
+        PVOID Pointer;
+    };
+    ULONG_PTR Information;
+} IO_STATUS_BLOCK, * PIO_STATUS_BLOCK;
+
+
+
+typedef VOID(NTAPI* PIO_APC_ROUTINE)(
+    _In_ PVOID ApcContext,
+    _In_ PIO_STATUS_BLOCK IoStatusBlock,
+    _In_ ULONG Reserved
+    );
+
+
+// this is what SystemFunction032 function take as a parameter
+typedef struct
+{
+    DWORD   Length;
+    DWORD   MaximumLength;
+    PVOID   Buffer;
+
+} USTRING;
+
+
+typedef enum _SECTION_INHERIT {
+    ViewShare = 1,
+    ViewUnmap = 2
+} SECTION_INHERIT, * PSECTION_INHERIT;
+
+
+typedef struct _UNICODE_STRING {
+    USHORT Length;
+    USHORT MaximumLength;
+    PWSTR  Buffer;
+} UNICODE_STRING, * PUNICODE_STRING;
+
+
+typedef PVOID PACTIVATION_CONTEXT;
+typedef PVOID PRTL_USER_PROCESS_PARAMETERS;
+typedef PVOID PAPI_SET_NAMESPACE;
+
+
+
+// https://www.nirsoft.net/kernel_struct/vista/PEB_LDR_DATA.html
+
+typedef struct _PEB_LDR_DATA {
+    ULONG                   Length;
+    ULONG                   Initialized;
+    PVOID                   SsHandle;
+    LIST_ENTRY              InLoadOrderModuleList;
+    LIST_ENTRY              InMemoryOrderModuleList;
+    LIST_ENTRY              InInitializationOrderModuleList;
+} PEB_LDR_DATA, * PPEB_LDR_DATA;
+
+
+
+// https://www.nirsoft.net/kernel_struct/vista/LDR_DATA_TABLE_ENTRY.html
+
+typedef struct _LDR_DATA_TABLE_ENTRY {
+    LIST_ENTRY InLoadOrderLinks;
+    LIST_ENTRY InMemoryOrderLinks;
+    LIST_ENTRY InInitializationOrderLinks;
+    PVOID DllBase;
+    PVOID EntryPoint;
+    ULONG SizeOfImage;
+    UNICODE_STRING FullDllName;
+    UNICODE_STRING BaseDllName;
+    ULONG Flags;
+    WORD LoadCount;
+    WORD TlsIndex;
+    union {
+        LIST_ENTRY HashLinks;
+        struct {
+            PVOID SectionPointer;
+            ULONG CheckSum;
+        };
+    };
+    union {
+        ULONG TimeDateStamp;
+        PVOID LoadedImports;
+    };
+    PACTIVATION_CONTEXT EntryPointActivationContext;
+    PVOID PatchInformation;
+    LIST_ENTRY ForwarderLinks;
+    LIST_ENTRY ServiceTagLinks;
+    LIST_ENTRY StaticLinks;
+} LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
+
+
+
+// https://github.com/processhacker/phnt/blob/master/ntpebteb.h#L69
+
+typedef struct _PEB
+{
+    BOOLEAN InheritedAddressSpace;
+    BOOLEAN ReadImageFileExecOptions;
+    BOOLEAN BeingDebugged;
+    union
+    {
+        BOOLEAN BitField;
+        struct
+        {
+            BOOLEAN ImageUsesLargePages : 1;
+            BOOLEAN IsProtectedProcess : 1;
+            BOOLEAN IsImageDynamicallyRelocated : 1;
+            BOOLEAN SkipPatchingUser32Forwarders : 1;
+            BOOLEAN IsPackagedProcess : 1;
+            BOOLEAN IsAppContainer : 1;
+            BOOLEAN IsProtectedProcessLight : 1;
+            BOOLEAN IsLongPathAwareProcess : 1;
+        };
+    };
+
+    HANDLE Mutant;
+
+    PVOID ImageBaseAddress;
+    PPEB_LDR_DATA Ldr;
+    PRTL_USER_PROCESS_PARAMETERS ProcessParameters;
+    PVOID SubSystemData;
+    PVOID ProcessHeap;
+    PRTL_CRITICAL_SECTION FastPebLock;
+    PSLIST_HEADER AtlThunkSListPtr;
+    PVOID IFEOKey;
+
+    union
+    {
+        ULONG CrossProcessFlags;
+        struct
+        {
+            ULONG ProcessInJob : 1;
+            ULONG ProcessInitializing : 1;
+            ULONG ProcessUsingVEH : 1;
+            ULONG ProcessUsingVCH : 1;
+            ULONG ProcessUsingFTH : 1;
+            ULONG ProcessPreviouslyThrottled : 1;
+            ULONG ProcessCurrentlyThrottled : 1;
+            ULONG ProcessImagesHotPatched : 1; // REDSTONE5
+            ULONG ReservedBits0 : 24;
+        };
+    };
+    union
+    {
+        PVOID KernelCallbackTable;
+        PVOID UserSharedInfoPtr;
+    };
+    ULONG SystemReserved;
+    ULONG AtlThunkSListPtr32;
+    PAPI_SET_NAMESPACE ApiSetMap;
+    ULONG TlsExpansionCounter;
+    PVOID TlsBitmap;
+    ULONG TlsBitmapBits[2];
+
+    PVOID ReadOnlySharedMemoryBase;
+    PVOID SharedData; // HotpatchInformation
+    PVOID* ReadOnlyStaticServerData;
+
+    PVOID AnsiCodePageData; // PCPTABLEINFO
+    PVOID OemCodePageData; // PCPTABLEINFO
+    PVOID UnicodeCaseTableData; // PNLSTABLEINFO
+
+    ULONG NumberOfProcessors;
+    ULONG NtGlobalFlag;
+
+    ULARGE_INTEGER CriticalSectionTimeout;
+    SIZE_T HeapSegmentReserve;
+    SIZE_T HeapSegmentCommit;
+    SIZE_T HeapDeCommitTotalFreeThreshold;
+    SIZE_T HeapDeCommitFreeBlockThreshold;
+
+    ULONG NumberOfHeaps;
+    ULONG MaximumNumberOfHeaps;
+    PVOID* ProcessHeaps; // PHEAP
+
+    PVOID GdiSharedHandleTable;
+    PVOID ProcessStarterHelper;
+    ULONG GdiDCAttributeList;
+
+    PRTL_CRITICAL_SECTION LoaderLock;
+
+    ULONG OSMajorVersion;
+    ULONG OSMinorVersion;
+    USHORT OSBuildNumber;
+    USHORT OSCSDVersion;
+    ULONG OSPlatformId;
+    ULONG ImageSubsystem;
+    ULONG ImageSubsystemMajorVersion;
+    ULONG ImageSubsystemMinorVersion;
+    KAFFINITY ActiveProcessAffinityMask;
+    ULONG GdiHandleBuffer[60];
+    PVOID PostProcessInitRoutine;
+
+    PVOID TlsExpansionBitmap;
+    ULONG TlsExpansionBitmapBits[32];
+
+    ULONG SessionId;
+
+    ULARGE_INTEGER AppCompatFlags;
+    ULARGE_INTEGER AppCompatFlagsUser;
+    PVOID pShimData;
+    PVOID AppCompatInfo; // APPCOMPAT_EXE_DATA
+
+    UNICODE_STRING CSDVersion;
+
+    PVOID ActivationContextData; // ACTIVATION_CONTEXT_DATA
+    PVOID ProcessAssemblyStorageMap; // ASSEMBLY_STORAGE_MAP
+    PVOID SystemDefaultActivationContextData; // ACTIVATION_CONTEXT_DATA
+    PVOID SystemAssemblyStorageMap; // ASSEMBLY_STORAGE_MAP
+
+    SIZE_T MinimumStackCommit;
+
+    PVOID SparePointers[2]; // 19H1 (previously FlsCallback to FlsHighIndex)
+    PVOID PatchLoaderData;
+    PVOID ChpeV2ProcessInfo; // _CHPEV2_PROCESS_INFO
+
+    ULONG AppModelFeatureState;
+    ULONG SpareUlongs[2];
+
+    USHORT ActiveCodePage;
+    USHORT OemCodePage;
+    USHORT UseCaseMapping;
+    USHORT UnusedNlsField;
+
+    PVOID WerRegistrationData;
+    PVOID WerShipAssertPtr;
+
+    union
+    {
+        PVOID pContextData; // WIN7
+        PVOID pUnused; // WIN10
+        PVOID EcCodeBitMap; // WIN11
+    };
+
+    PVOID pImageHeaderHash;
+    union
+    {
+        ULONG TracingFlags;
+        struct
+        {
+            ULONG HeapTracingEnabled : 1;
+            ULONG CritSecTracingEnabled : 1;
+            ULONG LibLoaderTracingEnabled : 1;
+            ULONG SpareTracingBits : 29;
+        };
+    };
+    ULONGLONG CsrServerReadOnlySharedMemoryBase;
+    PRTL_CRITICAL_SECTION TppWorkerpListLock;
+    LIST_ENTRY TppWorkerpList;
+    PVOID WaitOnAddressHashTable[128];
+    PVOID TelemetryCoverageHeader; // REDSTONE3
+    ULONG CloudFileFlags;
+    ULONG CloudFileDiagFlags; // REDSTONE4
+    CHAR PlaceholderCompatibilityMode;
+    CHAR PlaceholderCompatibilityModeReserved[7];
+    struct _LEAP_SECOND_DATA* LeapSecondData; // REDSTONE5
+    union
+    {
+        ULONG LeapSecondFlags;
+        struct
+        {
+            ULONG SixtySecondEnabled : 1;
+            ULONG Reserved : 31;
+        };
+    };
+    ULONG NtGlobalFlag2;
+    ULONGLONG ExtendedFeatureDisableMask; // since WIN11
+} PEB, * PPEB;
+
+
+// the following is from structs.h in the hellsgate repo
+// https://github.com/am0nsec/HellsGate/blob/master/HellsGate/structs.h#L95
+
+typedef struct __CLIENT_ID {
+    HANDLE UniqueProcess;
+    HANDLE UniqueThread;
+} CLIENT_ID, * PCLIENT_ID;
+
+typedef struct _TEB_ACTIVE_FRAME_CONTEXT {
+    ULONG Flags;
+    PCHAR FrameName;
+} TEB_ACTIVE_FRAME_CONTEXT, * PTEB_ACTIVE_FRAME_CONTEXT;
+
+typedef struct _TEB_ACTIVE_FRAME {
+    ULONG Flags;
+    struct _TEB_ACTIVE_FRAME* Previous;
+    PTEB_ACTIVE_FRAME_CONTEXT Context;
+} TEB_ACTIVE_FRAME, * PTEB_ACTIVE_FRAME;
+
+typedef struct _GDI_TEB_BATCH {
+    ULONG Offset;
+    ULONG HDC;
+    ULONG Buffer[310];
+} GDI_TEB_BATCH, * PGDI_TEB_BATCH;
+
+typedef PVOID PACTIVATION_CONTEXT;
+
+typedef struct _RTL_ACTIVATION_CONTEXT_STACK_FRAME {
+    struct __RTL_ACTIVATION_CONTEXT_STACK_FRAME* Previous;
+    PACTIVATION_CONTEXT ActivationContext;
+    ULONG Flags;
+} RTL_ACTIVATION_CONTEXT_STACK_FRAME, * PRTL_ACTIVATION_CONTEXT_STACK_FRAME;
+
+typedef struct _ACTIVATION_CONTEXT_STACK {
+    PRTL_ACTIVATION_CONTEXT_STACK_FRAME ActiveFrame;
+    LIST_ENTRY FrameListCache;
+    ULONG Flags;
+    ULONG NextCookieSequenceNumber;
+    ULONG StackId;
+} ACTIVATION_CONTEXT_STACK, * PACTIVATION_CONTEXT_STACK;
+
+typedef struct _TEB {
+    NT_TIB				NtTib;
+    PVOID				EnvironmentPointer;
+    CLIENT_ID			ClientId;
+    PVOID				ActiveRpcHandle;
+    PVOID				ThreadLocalStoragePointer;
+    PPEB				ProcessEnvironmentBlock;
+    ULONG               LastErrorValue;
+    ULONG               CountOfOwnedCriticalSections;
+    PVOID				CsrClientThread;
+    PVOID				Win32ThreadInfo;
+    ULONG               User32Reserved[26];
+    ULONG               UserReserved[5];
+    PVOID				WOW32Reserved;
+    LCID                CurrentLocale;
+    ULONG               FpSoftwareStatusRegister;
+    PVOID				SystemReserved1[54];
+    LONG                ExceptionCode;
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    PACTIVATION_CONTEXT_STACK* ActivationContextStackPointer;
+    UCHAR                  SpareBytes1[0x30 - 3 * sizeof(PVOID)];
+    ULONG                  TxFsContext;
+#elif (NTDDI_VERSION >= NTDDI_WS03)
+    PACTIVATION_CONTEXT_STACK ActivationContextStackPointer;
+    UCHAR                  SpareBytes1[0x34 - 3 * sizeof(PVOID)];
+#else
+    ACTIVATION_CONTEXT_STACK ActivationContextStack;
+    UCHAR                  SpareBytes1[24];
+#endif
+    GDI_TEB_BATCH			GdiTebBatch;
+    CLIENT_ID				RealClientId;
+    PVOID					GdiCachedProcessHandle;
+    ULONG                   GdiClientPID;
+    ULONG                   GdiClientTID;
+    PVOID					GdiThreadLocalInfo;
+    PSIZE_T					Win32ClientInfo[62];
+    PVOID					glDispatchTable[233];
+    PSIZE_T					glReserved1[29];
+    PVOID					glReserved2;
+    PVOID					glSectionInfo;
+    PVOID					glSection;
+    PVOID					glTable;
+    PVOID					glCurrentRC;
+    PVOID					glContext;
+    NTSTATUS                LastStatusValue;
+    UNICODE_STRING			StaticUnicodeString;
+    WCHAR                   StaticUnicodeBuffer[261];
+    PVOID					DeallocationStack;
+    PVOID					TlsSlots[64];
+    LIST_ENTRY				TlsLinks;
+    PVOID					Vdm;
+    PVOID					ReservedForNtRpc;
+    PVOID					DbgSsReserved[2];
+#if (NTDDI_VERSION >= NTDDI_WS03)
+    ULONG                   HardErrorMode;
+#else
+    ULONG                  HardErrorsAreDisabled;
+#endif
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    PVOID					Instrumentation[13 - sizeof(GUID) / sizeof(PVOID)];
+    GUID                    ActivityId;
+    PVOID					SubProcessTag;
+    PVOID					EtwLocalData;
+    PVOID					EtwTraceData;
+#elif (NTDDI_VERSION >= NTDDI_WS03)
+    PVOID					Instrumentation[14];
+    PVOID					SubProcessTag;
+    PVOID					EtwLocalData;
+#else
+    PVOID					Instrumentation[16];
+#endif
+    PVOID					WinSockData;
+    ULONG					GdiBatchCount;
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    BOOLEAN                SpareBool0;
+    BOOLEAN                SpareBool1;
+    BOOLEAN                SpareBool2;
+#else
+    BOOLEAN                InDbgPrint;
+    BOOLEAN                FreeStackOnTermination;
+    BOOLEAN                HasFiberData;
+#endif
+    UCHAR                  IdealProcessor;
+#if (NTDDI_VERSION >= NTDDI_WS03)
+    ULONG                  GuaranteedStackBytes;
+#else
+    ULONG                  Spare3;
+#endif
+    PVOID				   ReservedForPerf;
+    PVOID				   ReservedForOle;
+    ULONG                  WaitingOnLoaderLock;
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    PVOID				   SavedPriorityState;
+    ULONG_PTR			   SoftPatchPtr1;
+    ULONG_PTR			   ThreadPoolData;
+#elif (NTDDI_VERSION >= NTDDI_WS03)
+    ULONG_PTR			   SparePointer1;
+    ULONG_PTR              SoftPatchPtr1;
+    ULONG_PTR              SoftPatchPtr2;
+#else
+    Wx86ThreadState        Wx86Thread;
+#endif
+    PVOID* TlsExpansionSlots;
+#if defined(_WIN64) && !defined(EXPLICIT_32BIT)
+    PVOID                  DeallocationBStore;
+    PVOID                  BStoreLimit;
+#endif
+    ULONG                  ImpersonationLocale;
+    ULONG                  IsImpersonating;
+    PVOID                  NlsCache;
+    PVOID                  pShimData;
+    ULONG                  HeapVirtualAffinity;
+    HANDLE                 CurrentTransactionHandle;
+    PTEB_ACTIVE_FRAME      ActiveFrame;
+#if (NTDDI_VERSION >= NTDDI_WS03)
+    PVOID FlsData;
+#endif
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    PVOID PreferredLangauges;
+    PVOID UserPrefLanguages;
+    PVOID MergedPrefLanguages;
+    ULONG MuiImpersonation;
+    union
+    {
+        struct
+        {
+            USHORT SpareCrossTebFlags : 16;
+        };
+        USHORT CrossTebFlags;
+    };
+    union
+    {
+        struct
+        {
+            USHORT DbgSafeThunkCall : 1;
+            USHORT DbgInDebugPrint : 1;
+            USHORT DbgHasFiberData : 1;
+            USHORT DbgSkipThreadAttach : 1;
+            USHORT DbgWerInShipAssertCode : 1;
+            USHORT DbgIssuedInitialBp : 1;
+            USHORT DbgClonedThread : 1;
+            USHORT SpareSameTebBits : 9;
+        };
+        USHORT SameTebFlags;
+    };
+    PVOID TxnScopeEntercallback;
+    PVOID TxnScopeExitCAllback;
+    PVOID TxnScopeContext;
+    ULONG LockCount;
+    ULONG ProcessRundown;
+    ULONG64 LastSwitchTime;
+    ULONG64 TotalSwitchOutTime;
+    LARGE_INTEGER WaitReasonBitMap;
+#else
+    BOOLEAN SafeThunkCall;
+    BOOLEAN BooleanSpare[3];
+#endif
+} TEB, * PTEB;
+
+
+
+// https://github.com/winsiderss/systeminformer/blob/master/phnt/include/ntexapi.h#L1324
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
     SystemBasicInformation, // q: SYSTEM_BASIC_INFORMATION
@@ -133,7 +703,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemSessionBigPoolInformation, // q: SYSTEM_SESSION_POOLTAG_INFORMATION // since WIN8
     SystemBootGraphicsInformation, // q; s: SYSTEM_BOOT_GRAPHICS_INFORMATION (kernel-mode only)
     SystemScrubPhysicalMemoryInformation, // q; s: MEMORY_SCRUB_INFORMATION
-    SystemBadPageInformation, // SYSTEM_BAD_PAGE_INFORMATION
+    SystemBadPageInformation,
     SystemProcessorProfileControlArea, // q; s: SYSTEM_PROCESSOR_PROFILE_CONTROL_AREA
     SystemCombinePhysicalMemoryInformation, // s: MEMORY_COMBINE_INFORMATION, MEMORY_COMBINE_INFORMATION_EX, MEMORY_COMBINE_INFORMATION_EX2 // 130
     SystemEntropyInterruptTimingInformation, // q; s: SYSTEM_ENTROPY_TIMING_INFORMATION
@@ -173,7 +743,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemIsolatedUserModeInformation, // q: SYSTEM_ISOLATED_USER_MODE_INFORMATION
     SystemHardwareSecurityTestInterfaceResultsInformation,
     SystemSingleModuleInformation, // q: SYSTEM_SINGLE_MODULE_INFORMATION
-    SystemAllowedCpuSetsInformation, // s: SYSTEM_WORKLOAD_ALLOWED_CPU_SET_INFORMATION
+    SystemAllowedCpuSetsInformation,
     SystemVsmProtectionInformation, // q: SYSTEM_VSM_PROTECTION_INFORMATION (previously SystemDmaProtectionInformation)
     SystemInterruptCpuSetsInformation, // q: SYSTEM_INTERRUPT_CPU_SET_INFORMATION // 170
     SystemSecureBootPolicyFullInformation, // q: SYSTEM_SECUREBOOT_POLICY_FULL_INFORMATION
@@ -185,7 +755,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemWin32WerStartCallout,
     SystemSecureKernelProfileInformation, // q: SYSTEM_SECURE_KERNEL_HYPERGUARD_PROFILE_INFORMATION
     SystemCodeIntegrityPlatformManifestInformation, // q: SYSTEM_SECUREBOOT_PLATFORM_MANIFEST_INFORMATION // since REDSTONE
-    SystemInterruptSteeringInformation, // q: in: SYSTEM_INTERRUPT_STEERING_INFORMATION_INPUT, out: SYSTEM_INTERRUPT_STEERING_INFORMATION_OUTPUT // NtQuerySystemInformationEx // 180
+    SystemInterruptSteeringInformation, // SYSTEM_INTERRUPT_STEERING_INFORMATION_INPUT // 180
     SystemSupportedProcessorArchitectures, // p: in opt: HANDLE, out: SYSTEM_SUPPORTED_PROCESSOR_ARCHITECTURES_INFORMATION[] // NtQuerySystemInformationEx
     SystemMemoryUsageInformation, // q: SYSTEM_MEMORY_USAGE_INFORMATION
     SystemCodeIntegrityCertificateInformation, // q: SYSTEM_CODEINTEGRITY_CERTIFICATE_INFORMATION
@@ -210,156 +780,59 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemDmaGuardPolicyInformation, // SYSTEM_DMA_GUARD_POLICY_INFORMATION
     SystemEnclaveLaunchControlInformation, // SYSTEM_ENCLAVE_LAUNCH_CONTROL_INFORMATION
     SystemWorkloadAllowedCpuSetsInformation, // SYSTEM_WORKLOAD_ALLOWED_CPU_SET_INFORMATION // since REDSTONE5
-    SystemCodeIntegrityUnlockModeInformation, // SYSTEM_CODEINTEGRITY_UNLOCK_INFORMATION
+    SystemCodeIntegrityUnlockModeInformation,
     SystemLeapSecondInformation, // SYSTEM_LEAP_SECOND_INFORMATION
     SystemFlags2Information, // q: SYSTEM_FLAGS_INFORMATION
     SystemSecurityModelInformation, // SYSTEM_SECURITY_MODEL_INFORMATION // since 19H1
     SystemCodeIntegritySyntheticCacheInformation,
-    SystemFeatureConfigurationInformation, // q: in: SYSTEM_FEATURE_CONFIGURATION_QUERY, out: SYSTEM_FEATURE_CONFIGURATION_INFORMATION; s: SYSTEM_FEATURE_CONFIGURATION_UPDATE // NtQuerySystemInformationEx // since 20H1 // 210
-    SystemFeatureConfigurationSectionInformation, // q: in: SYSTEM_FEATURE_CONFIGURATION_SECTIONS_REQUEST, out: SYSTEM_FEATURE_CONFIGURATION_SECTIONS_INFORMATION // NtQuerySystemInformationEx
-    SystemFeatureUsageSubscriptionInformation, // q: SYSTEM_FEATURE_USAGE_SUBSCRIPTION_DETAILS; s: SYSTEM_FEATURE_USAGE_SUBSCRIPTION_UPDATE
+    SystemFeatureConfigurationInformation, // SYSTEM_FEATURE_CONFIGURATION_INFORMATION // since 20H1 // 210
+    SystemFeatureConfigurationSectionInformation, // SYSTEM_FEATURE_CONFIGURATION_SECTIONS_INFORMATION
+    SystemFeatureUsageSubscriptionInformation, // SYSTEM_FEATURE_USAGE_SUBSCRIPTION_DETAILS
     SystemSecureSpeculationControlInformation, // SECURE_SPECULATION_CONTROL_INFORMATION
     SystemSpacesBootInformation, // since 20H2
     SystemFwRamdiskInformation, // SYSTEM_FIRMWARE_RAMDISK_INFORMATION
     SystemWheaIpmiHardwareInformation,
-    SystemDifSetRuleClassInformation, // SYSTEM_DIF_VOLATILE_INFORMATION
+    SystemDifSetRuleClassInformation,
     SystemDifClearRuleClassInformation,
-    SystemDifApplyPluginVerificationOnDriver, // SYSTEM_DIF_PLUGIN_DRIVER_INFORMATION
-    SystemDifRemovePluginVerificationOnDriver, // SYSTEM_DIF_PLUGIN_DRIVER_INFORMATION // 220
+    SystemDifApplyPluginVerificationOnDriver,
+    SystemDifRemovePluginVerificationOnDriver, // 220
     SystemShadowStackInformation, // SYSTEM_SHADOW_STACK_INFORMATION
-    SystemBuildVersionInformation, // q: in: ULONG (LayerNumber), out: SYSTEM_BUILD_VERSION_INFORMATION // NtQuerySystemInformationEx // 222
+    SystemBuildVersionInformation, // SYSTEM_BUILD_VERSION_INFORMATION
     SystemPoolLimitInformation, // SYSTEM_POOL_LIMIT_INFORMATION (requires SeIncreaseQuotaPrivilege)
     SystemCodeIntegrityAddDynamicStore,
     SystemCodeIntegrityClearDynamicStores,
     SystemDifPoolTrackingInformation,
-    SystemPoolZeroingInformation, // q: SYSTEM_POOL_ZEROING_INFORMATION
-    SystemDpcWatchdogInformation, // q; s: SYSTEM_DPC_WATCHDOG_CONFIGURATION_INFORMATION
-    SystemDpcWatchdogInformation2, // q; s: SYSTEM_DPC_WATCHDOG_CONFIGURATION_INFORMATION_V2
-    SystemSupportedProcessorArchitectures2, // q: in opt: HANDLE, out: SYSTEM_SUPPORTED_PROCESSOR_ARCHITECTURES_INFORMATION[] // NtQuerySystemInformationEx // 230
+    SystemPoolZeroingInformation, // SYSTEM_POOL_ZEROING_INFORMATION
+    SystemDpcWatchdogInformation,
+    SystemDpcWatchdogInformation2,
+    SystemSupportedProcessorArchitectures2, // q: in opt: HANDLE, out: SYSTEM_SUPPORTED_PROCESSOR_ARCHITECTURES_INFORMATION[] // NtQuerySystemInformationEx  // 230
     SystemSingleProcessorRelationshipInformation, // q: SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX // (EX in: PROCESSOR_NUMBER Processor)
-    SystemXfgCheckFailureInformation, // q: SYSTEM_XFG_FAILURE_INFORMATION
+    SystemXfgCheckFailureInformation,
     SystemIommuStateInformation, // SYSTEM_IOMMU_STATE_INFORMATION // since 22H1
     SystemHypervisorMinrootInformation, // SYSTEM_HYPERVISOR_MINROOT_INFORMATION
     SystemHypervisorBootPagesInformation, // SYSTEM_HYPERVISOR_BOOT_PAGES_INFORMATION
     SystemPointerAuthInformation, // SYSTEM_POINTER_AUTH_INFORMATION
     SystemSecureKernelDebuggerInformation,
-    SystemOriginalImageFeatureInformation, // q: in: SYSTEM_ORIGINAL_IMAGE_FEATURE_INFORMATION_INPUT, out: SYSTEM_ORIGINAL_IMAGE_FEATURE_INFORMATION_OUTPUT // NtQuerySystemInformationEx
-    SystemMemoryNumaInformation,
-    SystemMemoryNumaPerformanceInformation, // SYSTEM_MEMORY_NUMA_PERFORMANCE_INFORMATION_INPUT, SYSTEM_MEMORY_NUMA_PERFORMANCE_INFORMATION_OUTPUT // since 24H2 // 240
-    SystemCodeIntegritySignedPoliciesFullInformation,
-    SystemSecureSecretsInformation,
-    SystemTrustedAppsRuntimeInformation, // SYSTEM_TRUSTEDAPPS_RUNTIME_INFORMATION
-    SystemBadPageInformationEx, // SYSTEM_BAD_PAGE_INFORMATION
-    SystemResourceDeadlockTimeout,
-    SystemBreakOnContextUnwindFailureInformation,
-    SystemOslRamdiskInformation, // SYSTEM_OSL_RAMDISK_INFORMATION
+    SystemOriginalImageFeatureInformation,
     MaxSystemInfoClass
 } SYSTEM_INFORMATION_CLASS;
 
-typedef struct _UNICODE_STRING
-{
-    USHORT Length;
-    USHORT MaximumLength;
-    _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
-} UNICODE_STRING, * PUNICODE_STRING;
-
-typedef LONG KPRIORITY, * PKPRIORITY;
-
-// Specific
-
-typedef struct _CLIENT_ID
-{
-    HANDLE UniqueProcess;
-    HANDLE UniqueThread;
-} CLIENT_ID, * PCLIENT_ID;
-
-typedef enum _KTHREAD_STATE
-{
-    Initialized,
-    Ready,
-    Running,
-    Standby,
-    Terminated,
-    Waiting,
-    Transition,
-    DeferredReady,
-    GateWaitObsolete,
-    WaitingForProcessInSwap,
-    MaximumThreadState
-} KTHREAD_STATE, * PKTHREAD_STATE;
-
-typedef enum _KWAIT_REASON
-{
-    Executive,
-    FreePage,
-    PageIn,
-    PoolAllocation,
-    DelayExecution,
-    Suspended,
-    UserRequest,
-    WrExecutive,
-    WrFreePage,
-    WrPageIn,
-    WrPoolAllocation,
-    WrDelayExecution,
-    WrSuspended,
-    WrUserRequest,
-    WrEventPair,
-    WrQueue,
-    WrLpcReceive,
-    WrLpcReply,
-    WrVirtualMemory,
-    WrPageOut,
-    WrRendezvous,
-    WrKeyedEvent,
-    WrTerminated,
-    WrProcessInSwap,
-    WrCpuRateControl,
-    WrCalloutStack,
-    WrKernel,
-    WrResource,
-    WrPushLock,
-    WrMutex,
-    WrQuantumEnd,
-    WrDispatchInt,
-    WrPreempted,
-    WrYieldExecution,
-    WrFastMutex,
-    WrGuardedMutex,
-    WrRundown,
-    WrAlertByThreadId,
-    WrDeferredPreempt,
-    WrPhysicalFault,
-    WrIoRing,
-    WrMdlCache,
-    MaximumWaitReason
-} KWAIT_REASON, * PKWAIT_REASON;
 
 
-typedef struct _SYSTEM_THREAD_INFORMATION
-{
-    LARGE_INTEGER KernelTime;
-    LARGE_INTEGER UserTime;
-    LARGE_INTEGER CreateTime;
-    ULONG WaitTime;
-    ULONG_PTR StartAddress;
-    CLIENT_ID ClientId;
-    KPRIORITY Priority;
-    KPRIORITY BasePriority;
-    ULONG ContextSwitches;
-    KTHREAD_STATE ThreadState;
-    KWAIT_REASON WaitReason;
-} SYSTEM_THREAD_INFORMATION, * PSYSTEM_THREAD_INFORMATION;
+// https://processhacker.sourceforge.io/doc/ntbasic_8h.html
+typedef LONG KPRIORITY;
 
 
+
+// https://doxygen.reactos.org/da/df4/struct__SYSTEM__PROCESS__INFORMATION.html
 typedef struct _SYSTEM_PROCESS_INFORMATION
 {
     ULONG NextEntryOffset;
     ULONG NumberOfThreads;
-    LARGE_INTEGER WorkingSetPrivateSize; // since VISTA
-    ULONG HardFaultCount; // since WIN7
-    ULONG NumberOfThreadsHighWatermark; // since WIN7
-    ULONGLONG CycleTime; // since WIN7
+    LARGE_INTEGER WorkingSetPrivateSize; //VISTA
+    ULONG HardFaultCount; //WIN7
+    ULONG NumberOfThreadsHighWatermark; //WIN7
+    ULONGLONG CycleTime; //WIN7
     LARGE_INTEGER CreateTime;
     LARGE_INTEGER UserTime;
     LARGE_INTEGER KernelTime;
@@ -369,7 +842,12 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     HANDLE InheritedFromUniqueProcessId;
     ULONG HandleCount;
     ULONG SessionId;
-    ULONG_PTR UniqueProcessKey; // since VISTA (requires SystemExtendedProcessInformation)
+    ULONG_PTR PageDirectoryBase;
+
+    //
+    // This part corresponds to VM_COUNTERS_EX.
+    // NOTE: *NOT* THE SAME AS VM_COUNTERS!
+    //
     SIZE_T PeakVirtualSize;
     SIZE_T VirtualSize;
     ULONG PageFaultCount;
@@ -382,14 +860,18 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
     SIZE_T PagefileUsage;
     SIZE_T PeakPagefileUsage;
     SIZE_T PrivatePageCount;
+
+    //
+    // This part corresponds to IO_COUNTERS
+    //
     LARGE_INTEGER ReadOperationCount;
     LARGE_INTEGER WriteOperationCount;
     LARGE_INTEGER OtherOperationCount;
     LARGE_INTEGER ReadTransferCount;
     LARGE_INTEGER WriteTransferCount;
     LARGE_INTEGER OtherTransferCount;
-    SYSTEM_THREAD_INFORMATION Threads[1]; // SystemProcessInformation
-    // SYSTEM_EXTENDED_THREAD_INFORMATION Threads[1]; // SystemExtendedProcessinformation
-    // SYSTEM_EXTENDED_THREAD_INFORMATION + SYSTEM_PROCESS_INFORMATION_EXTENSION // SystemFullProcessInformation
+    //    SYSTEM_THREAD_INFORMATION TH[1];
 } SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
+
+
 

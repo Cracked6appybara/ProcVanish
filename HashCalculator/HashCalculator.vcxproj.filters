@@ -15,37 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.c">
+    <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hooks.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vanWin.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ApiHashing.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="TypeDef.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="structs.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Hooks.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vanWin.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ApiHashing.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
