@@ -1,6 +1,5 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include <Windows.h>
-#include <Shlwapi.h>
 #include "structs.h"
 #include "common.h"
 #include "Hooks.h"
@@ -18,7 +17,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     {
     case DLL_PROCESS_ATTACH:
 
-        InitHooks();
+        InstallHook();
         
         break;
     case DLL_PROCESS_DETACH:

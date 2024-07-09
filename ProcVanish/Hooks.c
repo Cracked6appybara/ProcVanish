@@ -6,7 +6,7 @@
 #include "vanWin.h"
 #include "TypeDef.h"
 #include "MinHook.h"
-
+#include <Shlwapi.h>
 
 
 fnNtQuerySystemInformation originalNtQuery;
@@ -14,7 +14,7 @@ fnNtQuerySystemInformation newNtQuery;
 
 VOID InitHooks() {
 
-    MH_Initialize();
+    
     InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
 
 }
@@ -46,16 +46,20 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 }
 
 
-BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction) {
+BOOL InstallHook(/*LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction*/) {
 
-    *originalFunction = GetProcAddress(GetModuleHandle(L"NTDLL"), function);
+    //*originalFunction = GetProcAddress(GetModuleHandle(L"NTDLL"), function);
+    originalNtQuery = GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQuerySystemInformation");
 
-    
-    if (MH_CreateHook(originalFunction, &hookedFunction, &newFunction) != MH_OK) {
+    if (MH_Initialize() != MH_OK) {
         return FALSE;
     }
 
-    if (MH_EnableHook(originalFunction) != MH_OK) {
+    if (MH_CreateHook(originalNtQuery, &hookedNtQuery, &newNtQuery) != MH_OK) {
+        return FALSE;
+    }
+
+    if (MH_EnableHook(originalNtQuery) != MH_OK) {
         return FALSE;
     }
 

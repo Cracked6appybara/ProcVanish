@@ -2,7 +2,7 @@
 
 VOID InitHooks();
 
-BOOL InstallHook(LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction);
+BOOL InstallHook(/*LPCSTR function, LPVOID* originalFunction, LPVOID* hookedFunction, LPVOID* newFunction*/);
 BOOL UnHook();
 
 BOOL HasPrefix(LPCWSTR str);
