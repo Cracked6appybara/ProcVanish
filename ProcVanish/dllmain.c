@@ -3,7 +3,7 @@
 #include "structs.h"
 #include "common.h"
 #include "Hooks.h"
-
+#include "ApiHashing.h"
 
 #pragma comment(lib, "minhook.x64.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -16,6 +16,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
+
+        IatCamouflage();
 
         InstallHook();
         

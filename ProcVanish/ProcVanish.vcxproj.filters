@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ApiHashing">
+      <UniqueIdentifier>{5a09d6a2-7bf0-462b-a01a-ea80927f317c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.c">
@@ -24,22 +27,28 @@
     <ClCompile Include="vanWin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ApiHashing.c">
+      <Filter>ApiHashing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TypeDef.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="structs.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hooks.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeDef.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vanWin.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ApiHashing.h">
+      <Filter>ApiHashing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
