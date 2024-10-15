@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vanisher", "vanisher", "{CD
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcVanish", "ProcVanish\ProcVanish.vcxproj", "{C3471E38-9639-40CA-9633-A2C59054859E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{4C1B7EE5-DD22-49F9-A98B-4CC48CC990F7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "$van-example", "$van-example\$van-example.vcxproj", "{CF546CC0-E62A-45E2-B816-A58A17673E53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -35,6 +39,14 @@ Global
 		{C3471E38-9639-40CA-9633-A2C59054859E}.Release|x64.Build.0 = Release|x64
 		{C3471E38-9639-40CA-9633-A2C59054859E}.Release|x86.ActiveCfg = Release|Win32
 		{C3471E38-9639-40CA-9633-A2C59054859E}.Release|x86.Build.0 = Release|Win32
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Debug|x64.ActiveCfg = Debug|x64
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Debug|x64.Build.0 = Debug|x64
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Debug|x86.ActiveCfg = Debug|Win32
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Debug|x86.Build.0 = Debug|Win32
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Release|x64.ActiveCfg = Release|x64
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Release|x64.Build.0 = Release|x64
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Release|x86.ActiveCfg = Release|Win32
+		{CF546CC0-E62A-45E2-B816-A58A17673E53}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,6 +54,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0A59AC70-CD95-4756-A83E-4E89A052F0E3} = {2AD7978E-C423-4C0F-AF8D-621BAB3212FA}
 		{C3471E38-9639-40CA-9633-A2C59054859E} = {CDDEA9E6-6DE2-46C0-B775-196DD8F256A2}
+		{CF546CC0-E62A-45E2-B816-A58A17673E53} = {4C1B7EE5-DD22-49F9-A98B-4CC48CC990F7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5E8E63A0-F973-463E-817F-C6AF47660B2E}
