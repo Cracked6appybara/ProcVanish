@@ -13,13 +13,6 @@
 fnNtQuerySystemInformation __NtQuerySystemInformation;
 fnNtQuerySystemInformation newNtQuery;
 
-VOID InitHooks() {
-
-    MH_Initialize();
-    InstallHook("NtQuerySystemInformation", &__NtQuerySystemInformation, &hookedNtQuery, &newNtQuery);
-
-}
-
 NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
     NTSTATUS stat = newNtQuery(
         SystemInformationClass,
@@ -58,7 +51,6 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
 
     return stat;
 }
-
 
 BOOL InstallHook() {
 

