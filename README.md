@@ -20,8 +20,9 @@ I want to make this project as FUD as possible whilst having up on github. But t
 
 
 
-## Authors
+## Shout Out
 
 - [@bytecode77](https://github.com/bytecode77)
-Huge inspiration from [@bytecode77](https://github.com/bytecode77) for his project r77 rootkit.
+  
+Huge inspiration from bytecode77 for his project r77 rootkit.
 
