@@ -9,12 +9,9 @@ This project will be a ring three rootkit by using a DLL and MinHook to hook `NT
 I want to make this project as FUD as possible whilst having up on github. But to do this I will use `indirect syscalls` at any place I can and I will also use `Api Hashing`. Using both of these techniques will hide the functions used from the IAT and from using `Indirect Syscalls` it will hide the fact that syscalls are being called from inside the binary. 
 ## Features
 
-- [ ]  Hide Directories and Files
-- [ ]  Hide Registry Keys
 - [x]  Hide Processes From Task Manager, Proc Hacker etc.
 - [ ]  Indirect Syscalls
 - [ ]  Api Hashing
-- [ ]  IAT Camouflage
 - [ ]  Use the registry to store the Dll.
  
 ### Features+
