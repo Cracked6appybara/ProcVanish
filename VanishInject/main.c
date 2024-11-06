@@ -3,16 +3,6 @@
 #include <Windows.h>
 #include "resource.h"
 
-typedef struct BASE_RELOCATION_BLOCK {
-    DWORD PageAddress;
-    DWORD BlockSize;
-} BASE_RELOCATION_BLOCK, *PBASE_RELOCATION_BLOCK;
-
-typedef struct BASE_RELOCATION_ENTRY {
-    USHORT Offset : 12;
-    USHORT Type : 4;
-} BASE_RELOCATION_ENTRY, *PBASE_RELOCATION_ENTRY;
-
 BOOL GetDLLFromRsrc(PBYTE *pPayload, DWORD* pdwSize)
 {
 
@@ -58,43 +48,57 @@ BOOL GetDLLFromRsrc(PBYTE *pPayload, DWORD* pdwSize)
     return TRUE;
 }
 
-BOOL ParsingHeaders(IN PBYTE pFile, IN DWORD dwSize) {
+#define EXPORTED_FUNC_NAME "ReflectiveFunction"
 
-    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pFile;
-    if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-        return FALSE;
+#define ALLOC(SIZE)				LocalAlloc(LPTR, (SIZE_T)SIZE)
+#define FREE(BUFF)				LocalFree((LPVOID)BUFF)
+#define REALLOC(BUFF, SIZE)		LocalReAlloc(BUFF, SIZE,  LMEM_MOVEABLE | LMEM_ZEROINIT)
 
-    PIMAGE_NT_HEADERS pNtHdrs = (PIMAGE_NT_HEADERS)(pFile + pDosHeader->e_lfanew);
-    if (pNtHdrs->Signature != IMAGE_NT_SIGNATURE)
-        return FALSE;
+DWORD RVA2Offset(IN DWORD dwRVA, IN PBYTE pBase) {
 
-    IMAGE_DATA_DIRECTORY importDir = pNtHdrs->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
-    DWORD_PTR relocationTable = importDir.VirtualAddress + (DWORD)pFile;
-    DWORD relocationsProcessed = 0;
+    PIMAGE_NT_HEADERS pNTHeader = (PIMAGE_NT_HEADERS)(pBase + ((PIMAGE_DOS_HEADER)pBase)->e_lfanew);
+    PIMAGE_SECTION_HEADER pImgSectionHdr = (PIMAGE_SECTION_HEADER)((PBYTE)&pNTHeader->OptionalHeader + pNTHeader->FileHeader.SizeOfOptionalHeader);
 
-    while (relocationsProcessed < importDir.Size)
+    // Iterates throught sections
+    for (int i = 0; i <pNTHeader->FileHeader.NumberOfSections; i++)
     {
-        PBASE_RELOCATION_BLOCK relocationBlock = (PBASE_RELOCATION_BLOCK)(relocationTable + relocationsProcessed);
-        relocationsProcessed += sizeof(BASE_RELOCATION_BLOCK);
-        DWORD relocationsCount = (relocationBlock->BlockSize - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY);
-        PBASE_RELOCATION_ENTRY relocationEntries = (PBASE_RELOCATION_ENTRY)(relocationTable + relocationsProcessed);
-
-        for (DWORD i = 0; i < relocationsCount; i++)
-        {
-            relocationsProcessed += sizeof(BASE_RELOCATION_ENTRY);
-
-            if (relocationEntries[i].Type == 0)
-            {
-                continue;
-            }
-
-            DWORD_PTR relocationRVA = relocationBlock->PageAddress + relocationEntries[i].Offset;
-            DWORD_PTR addressToPatch = 0;
-            ReadProcessMemory(GetCurrentProcess(), (LPCVOID)((DWORD_PTR)pFile + relocationRVA), &addressToPatch, sizeof(DWORD_PTR), NULL);
-            memcpy((PVOID)((DWORD_PTR)pFile + relocationRVA), &pFile, sizeof(DWORD_PTR));
-        }
+        // If the RVA is located inside "i" PE Section
+        if (dwRVA >= pImgSectionHdr[i].VirtualAddress && dwRVA < (pImgSectionHdr[i].VirtualAddress + pImgSectionHdr[i].Misc.VirtualSize))
+            return (dwRVA - pImgSectionHdr[i].VirtualAddress) + pImgSectionHdr[i].PointerToRawData;
     }
-    
+
+    printf("\t[ERROR] Couldn't Convert The 0x%0.8X RVA To File Offset!\n");
+    return 0x00;
+}
+
+DWORD GetReflectiveFunctionOffset(IN ULONG_PTR uRflDllBuffer) {
+	
+    PIMAGE_NT_HEADERS			pImgNtHdrs					= NULL;
+    PIMAGE_EXPORT_DIRECTORY		pImgExportDir				= NULL;
+    PDWORD						pdwFunctionNameArray		= NULL;
+    PDWORD						pdwFunctionAddressArray		= NULL;
+    PWORD						pwFunctionOrdinalArray		= NULL;
+
+    pImgNtHdrs = (uRflDllBuffer + ((PIMAGE_DOS_HEADER)uRflDllBuffer)->e_lfanew);
+    if (pImgNtHdrs->Signature != IMAGE_NT_SIGNATURE)
+        return 0x00;
+		
+    pImgExportDir			= ( PIMAGE_EXPORT_DIRECTORY ) (uRflDllBuffer + RVA2Offset(pImgNtHdrs->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress, uRflDllBuffer));
+    pdwFunctionNameArray	= ( PDWORD ) (uRflDllBuffer + RVA2Offset(pImgExportDir->AddressOfNames, uRflDllBuffer));
+    pdwFunctionAddressArray	= ( PDWORD ) (uRflDllBuffer + RVA2Offset(pImgExportDir->AddressOfFunctions, uRflDllBuffer));
+    pwFunctionOrdinalArray	= ( PWORD )  (uRflDllBuffer + RVA2Offset(pImgExportDir->AddressOfNameOrdinals, uRflDllBuffer));
+
+
+    for (DWORD i = 0; i < pImgExportDir->NumberOfFunctions; i++){
+
+        PCHAR pcFunctionName = (PCHAR)(uRflDllBuffer + RVA2Offset(pdwFunctionNameArray[i], uRflDllBuffer));
+		
+        if (strcmp(pcFunctionName, EXPORTED_FUNC_NAME) == 0) 
+            return RVA2Offset(pdwFunctionAddressArray[pwFunctionOrdinalArray[i]], uRflDllBuffer);
+    }
+
+    printf("\t[!] Cound'nt Resolve %s's Offset! \n", EXPORTED_FUNC_NAME);
+    return 0x00;
 }
 
 int main(void) {
@@ -107,7 +111,7 @@ int main(void) {
     }
     printf("[i] DLL Stored At\t| 0x%p | SIZE %d\n", pData, dwSize);
 
-
+GetReflectiveFunctionOffset(pData);
     
     printf("[#] Press <Enter> To Quit...\n");
     getchar();

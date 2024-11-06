@@ -8,9 +8,6 @@
 #pragma comment(lib, "minhook.x64.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
-
-
-
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
     switch (fdwReason)
@@ -28,6 +25,5 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
         break;
     }
-
     return TRUE;
 }

